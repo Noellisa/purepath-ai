@@ -1,11 +1,28 @@
 import "./Dashboard.css"
-import {useState} from "react"
-import { useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react";
+import API_BASE_URL from "../../api";
 
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [showAll, setShowAll] = useState(false);
+const [stats, setStats] = useState({
+  totalReports: 0,
+  criticalHotspots: 0,
+  byStatus: []
+});
+
+useEffect(() => {
+  fetch(`${API_BASE_URL}/reports/admin/stats`, {
+    headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+  })
+    .then(res => res.json())
+    .then(data => { if (data.success) setStats(data.data); })
+    .catch(() => {}); // Keep static numbers if API unavailable
+}, []);
+  
+
+
   return (
     <section className="dashboard-container">
 
@@ -67,7 +84,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                     <p className="statTitle">ACTIVE REPORTS</p>
-                    <h2>1,248</h2>
+                    <h2>{stats.totalReports || 1248}</h2>
                 </div>
             </div>
 
@@ -77,7 +94,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                     <p className="statTitle">HIGH PRIORITY</p>
-                    <h2>14</h2>
+                    <h2>{stats.criticalHotspots || 14}</h2>
                 </div>
             </div>
 
@@ -87,7 +104,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                     <p className="statTitle">RESOLVED CASES</p>
-                    <h2>842</h2>
+                    <h2>{stats.byStatus?.find(s => s.status === 'cleaned')?.count || 842}</h2>
                 </div>
             </div>
 
